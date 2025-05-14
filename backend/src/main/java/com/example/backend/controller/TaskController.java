@@ -74,6 +74,7 @@ public class TaskController {
             });
         }
     }
+
     // 🔹 Search by keyword (title or description)
     @GetMapping("/search")
     public List<Task> search(@RequestParam String keyword) {
@@ -120,5 +121,11 @@ public class TaskController {
     @GetMapping("/filter/tag")
     public List<Task> byTag(@RequestParam Long tagId) {
         return repo.findByTagId(tagId);
+    }
+
+    // 🔹 Delete all tasks - This endpoint will clear all tasks from the database
+    @DeleteMapping("/clear-all")
+    public void deleteAll() {
+        repo.deleteAll();
     }
 }

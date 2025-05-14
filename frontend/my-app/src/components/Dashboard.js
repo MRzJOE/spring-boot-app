@@ -1,37 +1,72 @@
-import React, { useEffect, useState } from 'react';
-
-const API = 'https://symmetrical-xylophone-px74r4p7rqg27vp6-8080.app.github.dev/api/tasks';
+import React, { useEffect, useState, useCallback } from 'react';
+import { API_ENDPOINTS, formatDateForApi, handleApiError } from '../config';
 
 function Dashboard() {
   const [tasks, setTasks] = useState([]);
   const [today, setToday] = useState([]);
   const [upcoming, setUpcoming] = useState([]);
   const [progress, setProgress] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const fetchAll = async () => {
-    const res = await fetch(API);
-    const all = await res.json();
-    setTasks(all);
+  const fetchAll = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      console.log('[Dashboard] Fetching tasks from:', API_ENDPOINTS.TASKS);
+      
+      const res = await fetch(API_ENDPOINTS.TASKS);
+      console.log('[Dashboard] Response status:', res.status);
+      
+      if (!res.ok) {
+        throw new Error(`API error: ${res.status}`);
+      }
+      
+      const all = await res.json();
+      console.log('[Dashboard] Fetched tasks:', all && all.length);
+      
+      if (!Array.isArray(all)) {
+        console.error('[Dashboard] API did not return an array:', all);
+        throw new Error('API did not return an array');
+      }
+      
+      setTasks(all);
 
-    const todayStr = new Date().toISOString().slice(0, 10);
-    const todayTasks = all.filter(t => t.dueDate === todayStr);
-    const futureTasks = all.filter(t => t.dueDate > todayStr);
+      const todayStr = formatDateForApi(new Date());
+      console.log('[Dashboard] Today\'s date string:', todayStr);
+      
+      const todayTasks = all.filter(t => t.dueDate === todayStr);
+      const futureTasks = all.filter(t => t.dueDate > todayStr);
 
-    const done = all.filter(t => t.completed).length;
-    const percent = all.length ? Math.round((done / all.length) * 100) : 0;
+      console.log('[Dashboard] Today\'s tasks:', todayTasks.length);
+      console.log('[Dashboard] Upcoming tasks:', futureTasks.length);
 
-    setToday(todayTasks);
-    setUpcoming(futureTasks);
-    setProgress(percent);
-  };
+      const done = all.filter(t => t.completed).length;
+      const percent = all.length ? Math.round((done / all.length) * 100) : 0;
+
+      setToday(todayTasks);
+      setUpcoming(futureTasks);
+      setProgress(percent);
+    } catch (err) {
+      console.error('[Dashboard] Failed to load dashboard data:', err);
+      setError('Failed to load dashboard data: ' + err.message);
+      handleApiError(err);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
     fetchAll();
-  }, []);
+    // Removed setInterval to prevent auto-refresh
+    return () => {};
+  }, [fetchAll]);
 
   return (
     <div className="dashboard">
-      <h2>📅 Today’s Tasks ({today.length})</h2>
+      {isLoading && <p>Loading dashboard...</p>}
+      {error && <p className="error-message">{error}</p>}
+      
+      <h2>📅 Today's Tasks ({today.length})</h2>
       <ul>
         {today.map(t => <li key={t.id}>{t.title}</li>)}
       </ul>

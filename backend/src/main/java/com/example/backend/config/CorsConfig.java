@@ -13,10 +13,14 @@ public class CorsConfig {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/api/**")
-                        .allowedOrigins("*")  // Allow requests from any origin (for development)
+                        .allowedOrigins(
+                            "http://localhost:3000",
+                            "https://symmetrical-xylophone-px74r4p7rqg27vp6-3000.app.github.dev",
+                            "https://symmetrical-xylophone-px74r4p7rqg27vp6-8080.app.github.dev"
+                        )
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                         .allowedHeaders("*")
-                        .allowCredentials(false);  // Change to true if you need to send cookies
+                        .allowCredentials(false);
             }
         };
     }

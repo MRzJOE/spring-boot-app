@@ -5,6 +5,15 @@
   margin: 30px 0;
 }
 
+.calendar-view .error-message {
+  background-color: #ffeeee;
+  color: #cc0000;
+  padding: 10px;
+  border-radius: 6px;
+  margin-bottom: 15px;
+  border-left: 4px solid #cc0000;
+}
+
 .date-tasks ul {
   list-style: none;
   padding: 0;
